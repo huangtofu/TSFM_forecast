@@ -1,0 +1,58 @@
+# ============================================================
+# requirements.txt — conflict-free, pinned for TSFM_predict
+# ------------------------------------------------------------
+# Reference: conda env `newtofu` (Python 3.12.13, Windows, CPU torch)
+#   - every model import verified: chronos / tirex2 / toto2 / torch
+#   - `pip check` -> "No broken requirements found."
+# Target Python: >=3.12, <3.15 (3.12.13 verified; 3.13.11 also OK per Requires-Python)
+#
+# Conflict fixes vs the previous file:
+#   pandas==3.0.3            -> pandas==2.3.3   (gluonts requires pandas<3,>=1.4)
+#   toto-models==2.0.0       -> toto-2==2.0.0   (the `toto2` module ships in `toto-2`;
+#                                                 toto-models is only a meta-package, v1.0.0)
+#   transformers==4.57.6 / safetensors==0.7.0   -> 5.14.1 / 0.8.0
+#                                                 (transformers 5.x requires safetensors>=0.8.0)
+#   torch kept at ==2.13.0   (satisfies every range incl. gluonts[torch] torch<3,>=2.10;
+#                             the working env was also validated with torch 2.9.0)
+#   added missing hard deps: gluonts, accelerate, einops, flashrnn, xlstm,
+#                            jaxtyping, dd-unit-scaling, tokenizers, regex
+# ============================================================
+
+# ===== Core numerical / data =====
+numpy==2.5.1            # chronos<3,>=1.21 | tirex-2>=2.1.3 | toto-2>=1.26 | gluonts<3,>=1.24
+pandas==2.3.3           # gluonts caps at pandas<3 -> pandas 3.0.x CONFLICTS; tirex-2 gluonts extra wants ~=2.3.3
+openpyxl==3.1.5         # Excel engine for pd.read_excel(.xlsx)
+tqdm==4.70.0            # gluonts ~=4.23
+matplotlib==3.11.1      # toto-2 requires matplotlib>=3.9.0
+
+# ===== PyTorch =====
+# Windows: PyPI torch wheel is CPU-only. For the exact CPU-index build use:
+#   pip install torch==2.13.0 --index-url https://download.pytorch.org/whl/cpu
+torch==2.13.0           # chronos <3,>=2.2 | tirex-2 >=2.8 | toto-2 >=2.4 | gluonts[torch] <3,>=2.10
+
+# ===== Hugging Face stack =====
+transformers==5.14.1    # chronos-forecasting requires <6,>=4.41
+huggingface-hub==1.26.0 # transformers <2,>=1.5 | tirex-2 >=0.35.3 | toto-2 >=0.20
+safetensors==0.8.0      # transformers>=0.8.0 | toto-2>=0.4.0
+accelerate==1.14.0      # chronos-forecasting requires >=1.1.0,<2
+tokenizers==0.22.2      # transformers >=0.22.0,<=0.23.0
+regex==2026.7.19        # transformers >=2025.10.22
+PyYAML==6.0.3           # tirex-2>=6 | transformers>=5.1
+einops==0.8.2           # chronos <1,>=0.7 | tirex ~=0.8.1 | toto-2 >=0.7
+
+# ===== Time-series foundation models =====
+chronos-forecasting==2.3.1   # provides `chronos.Chronos2Pipeline` (Python>=3.10)
+tirex-2==0.2.1               # provides `tirex2.ForecastModel` (Python>=3.11)
+toto-2==2.0.0                # provides `toto2.Toto2Model` (Python>=3.12)
+# toto-models==1.0.0         # optional meta-package (depends on toto-2); NOT imported by the code
+
+# ===== Transitive deps required by the models (pinned for stability) =====
+gluonts==0.17.0          # toto-2 requires gluonts[torch]>=0.16.0; requires pandas<3
+flashrnn==1.0.6          # tirex-2 >=1.0.5
+xlstm==2.0.5             # tirex-2 ~=2.0.3
+jaxtyping==0.3.11        # toto-2 >=0.2.25
+dd-unit-scaling==0.1.0   # toto-2 >=0.1.0
+scipy==1.18.1            # pulled by gluonts[torch]
+lightning==2.6.5         # gluonts[torch] <2.7,>=2.2.2
+pytorch-lightning==2.6.5 # gluonts[torch] <2.7,>=2.2.2
+unit-scaling==0.3.5      # dd-unit-scaling dependency
